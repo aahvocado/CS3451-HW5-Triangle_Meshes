@@ -83,14 +83,13 @@ void read_mesh(String filename){
   words = split (lines[0], " ");
   int num_vertices = int(words[1]);
   println ("number of vertices = " + num_vertices);
-  vertexT = new int[num_vertices*3];//create a new set of vertices in pvector form
-  oppositesT = new int[num_vertices*3];
   
   words = split (lines[1], " ");
   int num_faces = int(words[1]);
   println ("number of faces = " + num_faces);
-  //oppositesT = new foat[num_faces];
   
+  vertexT = new int[num_faces*3];//create a new set of vertices in pvector form
+  oppositesT = new int[num_faces*3];
   geometryT = new float[num_vertices][3];//hello
 
   // read in the vertices
@@ -131,9 +130,11 @@ void read_mesh(String filename){
     vertexT[i*3+2] = index3;
   }
   
+  println("done with that business");
+  
   //create opposite table
   createCorners(vertexT, oppositesT);
-  printArray(oppositesT);
+  //printArray(oppositesT);
 }
 
 //creates the opposites table from v into o
@@ -149,7 +150,7 @@ void createCorners(int[] v, int[] o){
       println();*/
       
       if(getV(getNext(a)) == getV(getPrev(b)) && getV(getPrev(a)) == getV(getNext(b))){
-        println("match!");
+        //println("match!");
         oppositesT[a] = b;
         oppositesT[b] = a;
       }
