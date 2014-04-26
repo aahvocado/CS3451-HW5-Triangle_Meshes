@@ -8,8 +8,10 @@ boolean rotate_flag = true;       // automatic rotation of model?
 float[][] geometryT;
 int[] vertexT;
 int[] oppositesT;
+boolean perFaceNormal = true;//true will calculate normals per face, false per vertex
 
 boolean debug = true;
+
 
 // initialize stuff
 void setup() {
@@ -61,23 +63,24 @@ void draw() {
   // THIS IS WHERE YOU SHOULD DRAW THE MESH
   if(geometryT != null){
     println();
-    for(int i=0;i<vertexT.length;i++){
+    for(int i=0;i<vertexT.length;i+=3){//go by threes because that makes sense
       println(i);
-      if(a==null){
-        a = getVector(getV(i));
-      }else if(b==null){
-        b = getVector(getV(i));
-      }else if(c==null){
-        c = getVector(getV(i));
-        drawTriangle(a, b, c);
-        a = null;
-        b = null;
-        c = null;
-      }
+      drawTriangle(i, i+1, i+2);
+//      if(a==null){
+//        a = getVector(getV(i));
+//      }else if(b==null){
+//        b = getVector(getV(i));
+//      }else if(c==null){
+//        c = getVector(getV(i));
+//        drawTriangle(a, b, c);
+//        a = null;
+//        b = null;
+//        c = null;
+//      }
     }
   }else{//boring square
       beginShape();
-      normal (0.0, 0.0, 1.0);
+      normal (1.0, 0.0, 0.0);
       vertex (-1.0, -1.0, 0.0);
       vertex ( 1.0, -1.0, 0.0);
       vertex ( 1.0,  1.0, 0.0);
@@ -93,14 +96,31 @@ void draw() {
 }
 
 //draw a shape with three vertices
-void drawTriangle(PVector a, PVector b, PVector c){
+void drawTriangle(int a, int b, int c){
+  PVector pa = getVector(getV(a));
+  PVector pb = getVector(getV(b));
+  PVector pc = getVector(getV(c));
   beginShape();
-  normal (0.0, 0.0, 1.0);
-  vertex (a.x, a.y, a.z);
-  vertex (b.x, b.y, b.z);
-  vertex (c.x, c.y, c.z);
+  PVector n = calculateNormal(pa, pb, pc);
+  normal (n.x, n.y, n.z);
+  vertex (pa.x, pa.y, pa.z);
+  vertex (pb.x, pb.y, pb.z);
+  vertex (pc.x, pc.y, pc.z);
   endShape(CLOSE);
 }
+
+//finds the surface normal 
+PVector calculateNormal(PVector a, PVector b, PVector c){
+  PVector r = new PVector(0,0,0);
+  if(perFaceNormal){//calculate normal by per face
+    r = a.cross(b);
+  }else{//calculate normal by per vertex
+    
+  }
+  r.normalize();
+  return r;
+}
+
 
 
 // Read polygon mesh from .ply file
@@ -124,7 +144,7 @@ void read_mesh(String filename){
   //instantiate all these arrays with data
   vertexT = new int[num_faces*3];
   oppositesT = new int[num_faces*3];
-  geometryT = new float[num_vertices][3];//hello
+  geometryT = new float[num_vertices][3];
 
   // read in the vertices
   for (i = 0; i < num_vertices; i++) {
@@ -191,5 +211,6 @@ void createCorners(int[] v, int[] o){
     }
   }
 }
+
 
 void create_sphere() {}

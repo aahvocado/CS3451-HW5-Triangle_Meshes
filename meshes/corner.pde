@@ -1,3 +1,5 @@
+
+
 //gets the coordinates from the geometry table
 PVector getVector(int v){
   return new PVector(geometryT[v][0], geometryT[v][1], geometryT[v][2]);
@@ -29,11 +31,22 @@ int getV(int c){
 }
 
 //c.r right
+int getRight(int c){
+  return getOpposite(getNext(c));
+}
 
 //c.l left
+int getLeft(int c){
+  return getOpposite(getPrev(c));
+}
 
 //c.s swing
+int getSwing(int c){
+  return getNext(getOpposite(getNext(c)));
+}
 
 //c.u unswing
-
+int getUnswing(int c){
+  return getPrev(getOpposite(getPrev(c)));
+}
 
