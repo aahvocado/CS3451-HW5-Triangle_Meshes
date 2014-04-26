@@ -93,14 +93,15 @@ void drawTriangle(int a, int b, int c){
   PVector pa = getVector(getV(a));
   PVector pb = getVector(getV(b));
   PVector pc = getVector(getV(c));
+  
   //draw the shape
   beginShape();
-  //get color from a table
   int colorNum = getTriangle(a);
   fill(colorT[colorNum]);
-  //draw vertices based on shading type
   if(shadingType == "flat"){
-    PVector n = pa.cross(pc);
+    PVector n = pa;
+    n.add(pb);
+    n.add(pc);
     normal (n.x, n.y, n.z);
     vertex (pa.x, pa.y, pa.z);
     vertex (pb.x, pb.y, pb.z);
@@ -130,35 +131,34 @@ void toggleShading(){
   }
   println("shading: "+shadingType);
 }
-
 //inits color, just blue like originally for now
 void initColor(){
   colorType = "default";
-  colorT = new color[vertexT.length/3];
+  colorT = new color[vertexT.length];
   for(int i = 0; i<colorT.length; i ++){
     colorT[i] = color(50,50,200);
   }
   println(colorType + " coloring ");
-}
 
+}
 //change color to a random color
 void changeColor(){
   colorType = "random";
-  colorT = new color[vertexT.length/3];
+  colorT = new color[vertexT.length];
   for(int i = 0; i<colorT.length; i ++){
     colorT[i] = color(random(255),random(255),random(255));
   }
   println(colorType + " coloring ");
 }  
 
-//changes color to white
 void turnWhite(){
   colorType = "white";
-  colorT = new color[vertexT.length/3];
+  colorT = new color[vertexT.length];
   for(int i = 0; i<colorT.length; i ++){
     colorT[i] = color(255,255,255);
   }
   println(colorType + " coloring ");
+
 }
 
 // Read polygon mesh from .ply file
@@ -244,8 +244,14 @@ void createCorners(int[] v, int[] o){
     for(int j = 0; j < v.length; j++){
       int a = i;
       int b = j;
-
+      
+      /*println(a + " / " + b);
+      println(getV(getNext(a)) + " and " + getV(getPrev(b)));
+      println(getV(getPrev(a)) + " and " + getV(getNext(b)));
+      println();*/
+      
       if(getV(getNext(a)) == getV(getPrev(b)) && getV(getPrev(a)) == getV(getNext(b))){
+        //println("match!");
         oppositesT[a] = b;
         oppositesT[b] = a;
       }
