@@ -1,3 +1,8 @@
+//gets the coordinates from the geometry table
+PVector getVector(int v){
+  return new PVector(geometryT[v][0], geometryT[v][1], geometryT[v][2]);
+}
+
 //c.t gets the triangle index from a corner
 int getTriangle(int c){
   return floor(c/3);

@@ -13,9 +13,16 @@ boolean debug = true;
 
 // initialize stuff
 void setup() {
+  //reset();
   size(400, 400, OPENGL);  // must use OPENGL here !!!
   noStroke();     // do not draw the edges of polygons
   if(debug) read_mesh ("tetra.ply");
+}
+
+void reset(){
+   geometryT = new float[0][0];
+   vertexT = new int[0];
+   oppositesT = new int[0];
 }
 
 // Draw the scene
@@ -50,15 +57,33 @@ void draw() {
   
   rotate (time, 1.0, 0.0, 0.0);
   
+  PVector a = null, b = null, c = null;//three points to draw for a triangle
   // THIS IS WHERE YOU SHOULD DRAW THE MESH
-  
-  beginShape();
-  normal (0.0, 0.0, 1.0);
-  vertex (-1.0, -1.0, 0.0);
-  vertex ( 1.0, -1.0, 0.0);
-  vertex ( 1.0,  1.0, 0.0);
-  vertex (-1.0,  1.0, 0.0);
-  endShape(CLOSE);
+  if(geometryT != null){
+    println();
+    for(int i=0;i<vertexT.length;i++){
+      println(i);
+      if(a==null){
+        a = getVector(getV(i));
+      }else if(b==null){
+        b = getVector(getV(i));
+      }else if(c==null){
+        c = getVector(getV(i));
+        drawTriangle(a, b, c);
+        a = null;
+        b = null;
+        c = null;
+      }
+    }
+  }else{//boring square
+      beginShape();
+      normal (0.0, 0.0, 1.0);
+      vertex (-1.0, -1.0, 0.0);
+      vertex ( 1.0, -1.0, 0.0);
+      vertex ( 1.0,  1.0, 0.0);
+      vertex (-1.0,  1.0, 0.0);
+      endShape(CLOSE);
+  }
   
   popMatrix();
  
@@ -67,7 +92,15 @@ void draw() {
     time += 0.02;
 }
 
-
+//draw a shape with three vertices
+void drawTriangle(PVector a, PVector b, PVector c){
+  beginShape();
+  normal (0.0, 0.0, 1.0);
+  vertex (a.x, a.y, a.z);
+  vertex (b.x, b.y, b.z);
+  vertex (c.x, c.y, c.z);
+  endShape(CLOSE);
+}
 
 
 // Read polygon mesh from .ply file
@@ -88,7 +121,8 @@ void read_mesh(String filename){
   int num_faces = int(words[1]);
   println ("number of faces = " + num_faces);
   
-  vertexT = new int[num_faces*3];//create a new set of vertices in pvector form
+  //instantiate all these arrays with data
+  vertexT = new int[num_faces*3];
   oppositesT = new int[num_faces*3];
   geometryT = new float[num_vertices][3];//hello
 
@@ -158,7 +192,4 @@ void createCorners(int[] v, int[] o){
   }
 }
 
-
-
 void create_sphere() {}
-
