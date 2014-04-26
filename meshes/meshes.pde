@@ -1,4 +1,4 @@
-// Sample code for starting the meshes project
+//daniel xiao
 
 import processing.opengl.*;
 
@@ -100,8 +100,11 @@ void drawTriangle(int a, int b, int c){
   fill(colorT[colorNum]);
   //draw vertices based on shading type
   if(shadingType == "flat"){
-    PVector n = pa.cross(pc);
+    PVector e1 = PVector.sub(pb, pa);
+    PVector e2 = PVector.sub(pc, pa);
+    PVector n = e1.cross(e2);
     normal (n.x, n.y, n.z);
+    
     vertex (pa.x, pa.y, pa.z);
     vertex (pb.x, pb.y, pb.z);
     vertex (pc.x, pc.y, pc.z);
@@ -118,48 +121,72 @@ void drawTriangle(int a, int b, int c){
   endShape(CLOSE);
 }
 
+//go through the process of triangulating the current mesh
 void triangulatedDual(){
+  ArrayList<float[]> newGeometryT = new ArrayList<float[]>();
+  ArrayList newVertexT = new ArrayList();
+
+  for(int i=0;i<vertexT.length;i++){
+    ArrayList<PVector> centroidsList = new ArrayList<PVector>();
+  }
+  
+  
+//BLAHHHHH
+
+//  for(int i=0;i<vertexT.length;i+=3){
+//    //find the values of these vecters
+//    PVector pa = getVector(getV(i));
+//    PVector pb = getVector(getV(i+1));
+//    PVector pc = getVector(getV(i+2));
+//    //get centroid
+//    PVector centroid = calculateCentroid(pa, pb, pc);
+//    float[] newVertices = {centroid.x, centroid.y, centroid.z};
+//
+//    int vertexIndex = newGeometryT.size();//temp variable to track the vertex position
+//    //see if we have already have a copy of this vertex
+//    int searchIndex = newGeometryT.indexOf(newVertices);
+//    if(searchIndex > -1){//found location
+//      vertexIndex = searchIndex;
+//    }else{//add a copy to the geometry table
+//      //println("new triangulated vertex added to geometry table");
+//      newGeometryT.add(newVertices);
+//    }
+//    newVertexT.add(vertexIndex);
+//  }
+//  
+//  
+//  //replace the current tables
+////  vertexT = new int[newVertexT.size()];
+////  for(int j=0;j<newVertexT.size();j++){
+////    vertexT[j] = (Integer)newVertexT.get(j);
+////  }
+//  
+//  geometryT = functionToConvertArrayListTo2DArray(newGeometryT);
+//  
+//  checkMesh();
+//  println("triangulated dual complete");
+}
+//give it an arraylist containing size 3 arrays pls
+float[][] functionToConvertArrayListTo2DArray(ArrayList a){
+  float[][] r = new float[a.size()][3];
+  for(int i = 0;i<a.size();i++){
+    float[] array = (float[])a.get(i);
+    if(array.length == 3){
+      r[i][0] = array[0];
+      r[i][1] = array[1];
+      r[i][2] = array[2];
+    }else{
+      println("ERROR this isn't a length 3 array");
+    }
+  }
+  return r;
 }
 
-//toggle between per-face and per-vertex normal shading
-void toggleShading(){
-  if(shadingType == "flat"){
-    shadingType = "smooth";
-  }else{
-    shadingType = "flat";
-  }
-  println("shading: "+shadingType);
+//simply finds the median of all three points
+PVector calculateCentroid(PVector a, PVector b, PVector c){
+  return new PVector((a.x+b.x+c.x/3),(a.y+b.y+c.y/3),(a.z+b.z+c.z/3));
 }
 
-//inits color, just blue like originally for now
-void initColor(){
-  colorType = "default";
-  colorT = new color[vertexT.length/3];
-  for(int i = 0; i<colorT.length; i ++){
-    colorT[i] = color(50,50,200);
-  }
-  println(colorType + " coloring ");
-}
-
-//change color to a random color
-void changeColor(){
-  colorType = "random";
-  colorT = new color[vertexT.length/3];
-  for(int i = 0; i<colorT.length; i ++){
-    colorT[i] = color(random(255),random(255),random(255));
-  }
-  println(colorType + " coloring ");
-}  
-
-//changes color to white
-void turnWhite(){
-  colorType = "white";
-  colorT = new color[vertexT.length/3];
-  for(int i = 0; i<colorT.length; i ++){
-    colorT[i] = color(255,255,255);
-  }
-  println(colorType + " coloring ");
-}
 
 // Read polygon mesh from .ply file
 //
@@ -222,10 +249,21 @@ void read_mesh(String filename){
     vertexT[i*3+2] = index3;
   }
     
+  checkMesh();
+  println("done reading data");
+}
+
+//stuff to do at the end of a new mesh
+void checkMesh(){
   //create opposite table
   createCorners(vertexT, oppositesT);
   //printArray(oppositesT);
   
+  refreshColorTable();
+}
+
+//corrects the color table
+void refreshColorTable(){
   //load color data
   if(colorType == "default"){
       initColor();
@@ -234,8 +272,6 @@ void read_mesh(String filename){
   }else if(colorType == "white"){
       turnWhite();
   }
-  
-  println("done reading data");
 }
 
 //creates the opposites table from v into o
