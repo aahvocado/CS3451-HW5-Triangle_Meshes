@@ -8,7 +8,10 @@ boolean rotate_flag = true;       // automatic rotation of model?
 float[][] geometryT;
 int[] vertexT;
 int[] oppositesT;
-boolean perFaceNormal = true;//true will calculate normals per face, false per vertex
+color[] colorT;
+
+String shadingType = "flat";//toggle shading type
+String colorType = "default";//default, white, or random color
 
 boolean debug = true;
 
@@ -25,6 +28,8 @@ void reset(){
    geometryT = new float[0][0];
    vertexT = new int[0];
    oppositesT = new int[0];
+   colorT = new color[0];
+   
 }
 
 // Draw the scene
@@ -62,21 +67,8 @@ void draw() {
   PVector a = null, b = null, c = null;//three points to draw for a triangle
   // THIS IS WHERE YOU SHOULD DRAW THE MESH
   if(geometryT != null){
-    println();
     for(int i=0;i<vertexT.length;i+=3){//go by threes because that makes sense
-      println(i);
       drawTriangle(i, i+1, i+2);
-//      if(a==null){
-//        a = getVector(getV(i));
-//      }else if(b==null){
-//        b = getVector(getV(i));
-//      }else if(c==null){
-//        c = getVector(getV(i));
-//        drawTriangle(a, b, c);
-//        a = null;
-//        b = null;
-//        c = null;
-//      }
     }
   }else{//boring square
       beginShape();
@@ -97,10 +89,15 @@ void draw() {
 
 //draw a shape with three vertices
 void drawTriangle(int a, int b, int c){
+  //get the three vertices from the vertex table
   PVector pa = getVector(getV(a));
   PVector pb = getVector(getV(b));
   PVector pc = getVector(getV(c));
+  
+  //draw the shape
   beginShape();
+  int colorNum = getTriangle(a);
+  fill(colorT[colorNum]);
   PVector n = calculateNormal(pa, pb, pc);
   normal (n.x, n.y, n.z);
   vertex (pa.x, pa.y, pa.z);
@@ -112,7 +109,7 @@ void drawTriangle(int a, int b, int c){
 //finds the surface normal 
 PVector calculateNormal(PVector a, PVector b, PVector c){
   PVector r = new PVector(0,0,0);
-  if(perFaceNormal){//calculate normal by per face
+  if(shadingType == "flat"){//calculate normal by per face
     r = a.cross(b);
   }else{//calculate normal by per vertex
     
@@ -122,17 +119,58 @@ PVector calculateNormal(PVector a, PVector b, PVector c){
 }
 
 
+void triangulatedDual(){
+}
+
+//toggle between per-face and per-vertex normal shading
+void toggleShading(){
+  if(shadingType == "flat"){
+    shadingType = "smooth";
+  }else{
+    shadingType = "flat";
+  }
+  println("shading: "+shadingType);
+}
+//inits color, just blue like originally for now
+void initColor(){
+  colorType = "default";
+  colorT = new color[vertexT.length];
+  for(int i = 0; i<colorT.length; i ++){
+    colorT[i] = color(50,50,200);
+  }
+  println(colorType + " coloring ");
+
+}
+//change color to a random color
+void changeColor(){
+  colorType = "random";
+  colorT = new color[vertexT.length];
+  for(int i = 0; i<colorT.length; i ++){
+    colorT[i] = color(random(255),random(255),random(255));
+  }
+  println(colorType + " coloring ");
+}  
+
+void turnWhite(){
+  colorType = "white";
+  colorT = new color[vertexT.length];
+  for(int i = 0; i<colorT.length; i ++){
+    colorT[i] = color(255,255,255);
+  }
+  println(colorType + " coloring ");
+
+}
 
 // Read polygon mesh from .ply file
 //
 // You should modify this routine to store all of the mesh data
 // into a mesh data structure instead of printing it to the screen.
 void read_mesh(String filename){
+  println("\n231reading new mesh");
   int i;
   String[] words;
   
   String lines[] = loadStrings(filename);
-  
   words = split (lines[0], " ");
   int num_vertices = int(words[1]);
   println ("number of vertices = " + num_vertices);
@@ -183,12 +221,21 @@ void read_mesh(String filename){
     vertexT[i*3+1] = index2;
     vertexT[i*3+2] = index3;
   }
-  
-  println("done with that business");
-  
+    
   //create opposite table
   createCorners(vertexT, oppositesT);
   //printArray(oppositesT);
+  
+  //load color data
+  if(colorType == "default"){
+      initColor();
+  }else if(colorType == "random"){
+      changeColor();
+  }else if(colorType == "white"){
+      turnWhite();
+  }
+  
+  println("done reading data");
 }
 
 //creates the opposites table from v into o

@@ -25,6 +25,15 @@ void keyPressed() {
   else if (key == 'q' || key == 'Q') {
     exit();                               // quit the program
   }
+  else if (key == 'd' || key == 'D') {
+    triangulatedDual();//calculate the triangulated dual of the current mesh
+  }else if (key == 'n' || key == 'N') {
+    toggleShading(); //toggle between per-face and per-vertex normal shading
+  }else if (key == 'r' || key == 'R') {
+    changeColor();//change to random face colors
+  }else if (key == 'w' || key == 'W') {
+    turnWhite();//change mesh faces to white
+  }
 }
 //
 void printTable(float[][] t){
