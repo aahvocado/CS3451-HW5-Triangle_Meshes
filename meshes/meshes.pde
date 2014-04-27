@@ -130,62 +130,85 @@ void triangulatedDual(){
   ArrayList<Integer> newVertexT = new ArrayList<Integer>();
 
   for(int i=0;i<numVertices;i++){
-    println("vertex "+ i);
     ArrayList<PVector> centroidsList = new ArrayList<PVector>();
-    int c = i;//corner
+    int c = findCornerWithVertex(i);//corner
+    println("corner "+c+" ("+getTriangle(c)+")");
     PVector averageCentroid = calculateCentroid(getCV(c),getCV(getNext(c)),getCV(getPrev(c)));
     centroidsList.add(averageCentroid);
     int n = getSwing(c);//next
     while(n!=c){
+      //println("\tswing "+n +" ("+getTriangle(n)+")");
       PVector centroid = calculateCentroid(getCV(n),getCV(getNext(n)),getCV(getPrev(n)));
-      //place face centroid into geometry table, until the last one which won't be this face?
-      newGeometryT[i][0] = centroid.x;
-      newGeometryT[i][1] = centroid.y;
-      newGeometryT[i][2] = centroid.z;
-      
+      addToTable(newGeometryT, centroid);
+      println("\t"+getCV(n));
+      println("\t"+getCV(getNext(n)));
+      println("\t"+getCV(getPrev(n)));
+      println();
+
       centroidsList.add(centroid);
       averageCentroid = PVector.add(averageCentroid, centroid);
       n = getSwing(n);
+
     }
+
     averageCentroid = PVector.div(averageCentroid, centroidsList.size());
+
     //place in average centroids
-    newGeometryT[numTriangles+i][0] = averageCentroid.x;
-    newGeometryT[numTriangles+i][1] = averageCentroid.y;
-    newGeometryT[numTriangles+i][2] = averageCentroid.z;
-    
-    //then build corners list  
-    //for(PVector p : centroidsList){
-    for(int j = 0;j<centroidsList.size();j++){
-      int cenNum = j;
-      if(cenNum >= numTriangles - 1){
-        cenNum = 0;
-      }
-      int next_cenNum = cenNum+1;
-      if(next_cenNum >= numTriangles - 1){
-        next_cenNum = 0;
-      }
-      newVertexT.add(numTriangles+i);//average centroid position
-      newVertexT.add(cenNum);//centroid position
-      newVertexT.add(next_cenNum);//next centroid position
-      //println("\t ["+j+"] "+centroidsList.get(j));
-    }
+    addToTable(newGeometryT, averageCentroid);
   }
   
   
   //set old tables to new tables
-  geometryT = newGeometryT;
-  vertexT = new int[newVertexT.size()];
-  for(int k = 0;k<vertexT.length;k++){
-    vertexT[k] = newVertexT.get(k);
-  }
-  oppositesT = new int[vertexT.length];
-  checkMesh();
+//  geometryT = newGeometryT;
+//  vertexT = new int[newVertexT.size()];
+//  for(int k = 0;k<vertexT.length;k++){
+//    vertexT[k] = newVertexT.get(k);
+//  }
+//  oppositesT = new int[vertexT.length];
+//  checkMesh();
 
-  println(newVertexT.toArray());
+  println("vertext table " + newVertexT.toArray());
   printTable(newGeometryT);
 }
 
-
+//adds an array to the stupid geometry table
+int addToTable(float[][] a, PVector v){
+  for(int i=0;i<a.length;i++){
+    int location = contains(a, v);
+    if(location > -1){
+      //println("\tduplicate vertex " + v);
+      return location;
+    }else{
+      if(a[i][0] == 0 && a[i][1] == 0 && a[i][2] == 0){
+        a[i][0] = v.x;
+        a[i][1] = v.y;
+        a[i][2] = v.z;
+        return i;
+      }
+    }
+  }
+  println("can't add to table "+v);
+  return -1;
+}
+//does the stupid geometry table have this vertex
+int contains(float[][] a, PVector v){
+  for(int i=0;i<a.length;i++){
+    if(a[i][0] == v.x && a[i][1] == v.y && a[i][2] == v.z){
+      return i;
+    }
+  }
+  return -1;
+}
+//finds the index from the vertex table that has this vertex
+int findCornerWithVertex(int v){
+  for(int i = 0;i<vertexT.length;i++){
+    if(vertexT[i] == v){
+      return i;
+    }
+  }
+  println("there is no corner with this vertex somehow");
+  return -1;
+}
 //takes in a corner from the vertex table and returns the resulting vector
 PVector getCV(int c){
   return getVector(getV(c));
@@ -209,7 +232,9 @@ float[][] functionToConvertArrayListTo2DArray(ArrayList a){
 
 //simply finds the median of all three points
 PVector calculateCentroid(PVector a, PVector b, PVector c){
-  return new PVector((a.x+b.x+c.x/3),(a.y+b.y+c.y/3),(a.z+b.z+c.z/3));
+  return new PVector((a.x + b.x + c.x)/3, 
+                     (a.y + b.y + c.y)/3, 
+                     (a.z + b.z + c.z)/3);
 }
 
 
@@ -280,10 +305,9 @@ void read_mesh(String filename){
 
 //stuff to do at the end of a new mesh
 void checkMesh(){
-
+  printTable(geometryT);
   //create opposite table
   createCorners(vertexT, oppositesT);
-  //printArray(oppositesT);
   refreshColorTable();
 }
 
@@ -305,7 +329,6 @@ void createCorners(int[] v, int[] o){
     for(int j = 0; j < v.length; j++){
       int a = i;
       int b = j;
-      println("a "+a+" b "+b);
       if(getV(getNext(a)) == getV(getPrev(b)) && getV(getPrev(a)) == getV(getNext(b))){
         oppositesT[a] = b;
         oppositesT[b] = a;
