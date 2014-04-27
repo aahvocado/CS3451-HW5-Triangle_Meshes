@@ -126,7 +126,6 @@ void triangulatedDual(){
   int numTriangles = vertexT.length/3;
   int numVertices = geometryT.length;
   float[][] newGeometryT = new float[numTriangles + numVertices][3];
-  //println(newGeometryT.length);
   ArrayList<Integer> newVertexT = new ArrayList<Integer>();
 
   for(int i=0;i<numVertices;i++){
@@ -135,39 +134,52 @@ void triangulatedDual(){
     println("corner "+c+" ("+getTriangle(c)+")");
     PVector averageCentroid = calculateCentroid(getCV(c),getCV(getNext(c)),getCV(getPrev(c)));
     centroidsList.add(averageCentroid);
+    addToTable(newGeometryT, averageCentroid);
+
     int n = getSwing(c);//next
     while(n!=c){
       //println("\tswing "+n +" ("+getTriangle(n)+")");
       PVector centroid = calculateCentroid(getCV(n),getCV(getNext(n)),getCV(getPrev(n)));
       addToTable(newGeometryT, centroid);
-      println("\t"+getCV(n));
-      println("\t"+getCV(getNext(n)));
-      println("\t"+getCV(getPrev(n)));
-      println();
+//      println("\t"+getCV(n));
+//      println("\t"+getCV(getNext(n)));
+//      println("\t"+getCV(getPrev(n)));
+//      println();
 
       centroidsList.add(centroid);
       averageCentroid = PVector.add(averageCentroid, centroid);
       n = getSwing(n);
-
     }
-
     averageCentroid = PVector.div(averageCentroid, centroidsList.size());
-
-    //place in average centroids
     addToTable(newGeometryT, averageCentroid);
+    for(int j = 0;j<centroidsList.size();j++){
+      
+      int avgC = contains(newGeometryT, averageCentroid);//avg cen
+      int c1 = contains(newGeometryT, centroidsList.get(j));//cen
+      int c2; //next cen
+      if(j+1>=centroidsList.size()-1){
+        c2 = contains(newGeometryT, centroidsList.get(0));
+      }else{
+        c2 = contains(newGeometryT, centroidsList.get(j+1));
+      }
+      
+      newVertexT.add(avgC);
+      newVertexT.add(c1);
+      newVertexT.add(c2);
+    }
   }
   
   
   //set old tables to new tables
-//  geometryT = newGeometryT;
-//  vertexT = new int[newVertexT.size()];
-//  for(int k = 0;k<vertexT.length;k++){
-//    vertexT[k] = newVertexT.get(k);
-//  }
-//  oppositesT = new int[vertexT.length];
-//  checkMesh();
+  geometryT = newGeometryT;
+  vertexT = new int[newVertexT.size()];
+  for(int k = 0;k<vertexT.length;k++){
+    vertexT[k] = newVertexT.get(k);
+  }
+  oppositesT = new int[vertexT.length];
+  checkMesh();
 
-  println("vertext table " + newVertexT.toArray());
+  println("vertext table " + newVertexT);
   printTable(newGeometryT);
 }
 
