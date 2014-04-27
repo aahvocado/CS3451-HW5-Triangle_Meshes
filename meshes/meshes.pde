@@ -123,49 +123,74 @@ void drawTriangle(int a, int b, int c){
 
 //go through the process of triangulating the current mesh
 void triangulatedDual(){
-  ArrayList<float[]> newGeometryT = new ArrayList<float[]>();
-  ArrayList newVertexT = new ArrayList();
+  int numTriangles = vertexT.length/3;
+  int numVertices = geometryT.length;
+  float[][] newGeometryT = new float[numTriangles + numVertices][3];
+  //println(newGeometryT.length);
+  ArrayList<Integer> newVertexT = new ArrayList<Integer>();
 
-  for(int i=0;i<vertexT.length;i++){
+  for(int i=0;i<numVertices;i++){
+    println("vertex "+ i);
     ArrayList<PVector> centroidsList = new ArrayList<PVector>();
+    int c = i;//corner
+    PVector averageCentroid = calculateCentroid(getCV(c),getCV(getNext(c)),getCV(getPrev(c)));
+    centroidsList.add(averageCentroid);
+    int n = getSwing(c);//next
+    while(n!=c){
+      PVector centroid = calculateCentroid(getCV(n),getCV(getNext(n)),getCV(getPrev(n)));
+      //place face centroid into geometry table, until the last one which won't be this face?
+      newGeometryT[i][0] = centroid.x;
+      newGeometryT[i][1] = centroid.y;
+      newGeometryT[i][2] = centroid.z;
+      
+      centroidsList.add(centroid);
+      averageCentroid = PVector.add(averageCentroid, centroid);
+      n = getSwing(n);
+    }
+    averageCentroid = PVector.div(averageCentroid, centroidsList.size());
+    //place in average centroids
+    newGeometryT[numTriangles+i][0] = averageCentroid.x;
+    newGeometryT[numTriangles+i][1] = averageCentroid.y;
+    newGeometryT[numTriangles+i][2] = averageCentroid.z;
+    
+    //then build corners list  
+    //for(PVector p : centroidsList){
+    for(int j = 0;j<centroidsList.size();j++){
+      int cenNum = j;
+      if(cenNum >= numTriangles - 1){
+        cenNum = 0;
+      }
+      int next_cenNum = cenNum+1;
+      if(next_cenNum >= numTriangles - 1){
+        next_cenNum = 0;
+      }
+      newVertexT.add(numTriangles+i);//average centroid position
+      newVertexT.add(cenNum);//centroid position
+      newVertexT.add(next_cenNum);//next centroid position
+      //println("\t ["+j+"] "+centroidsList.get(j));
+    }
   }
   
   
-//BLAHHHHH
+  //set old tables to new tables
+  geometryT = newGeometryT;
+  vertexT = new int[newVertexT.size()];
+  for(int k = 0;k<vertexT.length;k++){
+    vertexT[k] = newVertexT.get(k);
+  }
+  oppositesT = new int[vertexT.length];
+  checkMesh();
 
-//  for(int i=0;i<vertexT.length;i+=3){
-//    //find the values of these vecters
-//    PVector pa = getVector(getV(i));
-//    PVector pb = getVector(getV(i+1));
-//    PVector pc = getVector(getV(i+2));
-//    //get centroid
-//    PVector centroid = calculateCentroid(pa, pb, pc);
-//    float[] newVertices = {centroid.x, centroid.y, centroid.z};
-//
-//    int vertexIndex = newGeometryT.size();//temp variable to track the vertex position
-//    //see if we have already have a copy of this vertex
-//    int searchIndex = newGeometryT.indexOf(newVertices);
-//    if(searchIndex > -1){//found location
-//      vertexIndex = searchIndex;
-//    }else{//add a copy to the geometry table
-//      //println("new triangulated vertex added to geometry table");
-//      newGeometryT.add(newVertices);
-//    }
-//    newVertexT.add(vertexIndex);
-//  }
-//  
-//  
-//  //replace the current tables
-////  vertexT = new int[newVertexT.size()];
-////  for(int j=0;j<newVertexT.size();j++){
-////    vertexT[j] = (Integer)newVertexT.get(j);
-////  }
-//  
-//  geometryT = functionToConvertArrayListTo2DArray(newGeometryT);
-//  
-//  checkMesh();
-//  println("triangulated dual complete");
+  println(newVertexT.toArray());
+  printTable(newGeometryT);
 }
+
+
+//takes in a corner from the vertex table and returns the resulting vector
+PVector getCV(int c){
+  return getVector(getV(c));
+}
+
 //give it an arraylist containing size 3 arrays pls
 float[][] functionToConvertArrayListTo2DArray(ArrayList a){
   float[][] r = new float[a.size()][3];
@@ -255,10 +280,10 @@ void read_mesh(String filename){
 
 //stuff to do at the end of a new mesh
 void checkMesh(){
+
   //create opposite table
   createCorners(vertexT, oppositesT);
   //printArray(oppositesT);
-  
   refreshColorTable();
 }
 
@@ -280,7 +305,7 @@ void createCorners(int[] v, int[] o){
     for(int j = 0; j < v.length; j++){
       int a = i;
       int b = j;
-
+      println("a "+a+" b "+b);
       if(getV(getNext(a)) == getV(getPrev(b)) && getV(getPrev(a)) == getV(getNext(b))){
         oppositesT[a] = b;
         oppositesT[b] = a;
