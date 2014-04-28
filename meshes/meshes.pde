@@ -152,12 +152,15 @@ void triangulatedDual(){
     }
     averageCentroid = PVector.div(averageCentroid, centroidsList.size());
     addToTable(newGeometryT, averageCentroid);
+    
+    //build vertext table
+    println("building vertex table...");
     for(int j = 0;j<centroidsList.size();j++){
       
       int avgC = contains(newGeometryT, averageCentroid);//avg cen
       int c1 = contains(newGeometryT, centroidsList.get(j));//cen
       int c2; //next cen
-      if(j+1>=centroidsList.size()-1){
+      if(j+1>centroidsList.size()-1){
         c2 = contains(newGeometryT, centroidsList.get(0));
       }else{
         c2 = contains(newGeometryT, centroidsList.get(j+1));
@@ -169,16 +172,20 @@ void triangulatedDual(){
     }
   }
   
-  
   //set old tables to new tables
+  println("setting geometry table...");
   geometryT = newGeometryT;
+  println("setting vertex table...");
+
   vertexT = new int[newVertexT.size()];
   for(int k = 0;k<vertexT.length;k++){
     vertexT[k] = newVertexT.get(k);
   }
+  
+  println("setting opposites table...");
   oppositesT = new int[vertexT.length];
   checkMesh();
-
+  //print out table datar
   println("vertext table " + newVertexT);
   printTable(newGeometryT);
 }
@@ -205,11 +212,20 @@ int addToTable(float[][] a, PVector v){
 //does the stupid geometry table have this vertex
 int contains(float[][] a, PVector v){
   for(int i=0;i<a.length;i++){
-    if(a[i][0] == v.x && a[i][1] == v.y && a[i][2] == v.z){
+    if(closeEnough(a[i][0], v.x) && closeEnough(a[i][1], v.y) && closeEnough(a[i][2], v.z)){
+    //if(a[i][0] == v.x && a[i][1] == v.y && a[i][2] == v.z){
       return i;
     }
   }
+  //println("does not contain " + v);
   return -1;
+}
+boolean closeEnough(float a, float b){
+  if(pow(a - b, 2) < .00001){
+    return true;
+  }else{
+    return false;
+  }
 }
 //finds the index from the vertex table that has this vertex
 int findCornerWithVertex(int v){
